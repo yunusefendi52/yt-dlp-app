@@ -12,14 +12,28 @@ if (!($FfmpegVersion -match "Copyright")) {
 if ($IsWindows) {
     $YtDlUrl = "https://github.com/yt-dlp/yt-dlp/releases/download/2021.12.27/yt-dlp_min.exe"
 }
+elseif ($IsMacOS) {
+    $YtDlUrl = "https://github.com/yt-dlp/yt-dlp/releases/download/2021.12.27/yt-dlp_macos"
+} elseif ($IsLinux) {
+    $YtDlUrl = "https://github.com/yt-dlp/yt-dlp/releases/download/2021.12.27/yt-dlp"
+}
 
-$YtDl = Join-Path "temp" "yt-dlp.exe"
+if ($IsWindows) {
+    $YtDlFileName = "yt-dlp.exe"
+}
+else {
+    $YtDlFileName = "yt-dlp"
+}
+$YtDl = Join-Path "temp" $YtDlFileName
 if (!(Test-Path $YtDl)) {
     [System.IO.Directory]::CreateDirectory([System.IO.Path]::GetDirectoryName($YtDl))
     Write-Host "Downloading youtube-dlp" -ForegroundColor Blue
     Invoke-WebRequest $YtDlUrl -OutFile $YtDl
     Write-Host "Done downloading youtube-dlp" -ForegroundColor Green
     Write-Host ""
+    if (!$IsWindows) {
+        chmod a+rx $YtDl
+    }
 }
 
 $YtIndex = Get-ChildItem "list" -Recurse | Where-Object { $_.Name -eq "ytindex.txt" }
