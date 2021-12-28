@@ -1,3 +1,7 @@
+param (
+    [System.IO.DirectoryInfo] $Source
+)
+
 function ExecSafe([scriptblock] $cmd) {
     & $cmd 
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
@@ -14,7 +18,8 @@ if ($IsWindows) {
 }
 elseif ($IsMacOS) {
     $YtDlUrl = "https://github.com/yt-dlp/yt-dlp/releases/download/2021.12.27/yt-dlp_macos"
-} elseif ($IsLinux) {
+}
+elseif ($IsLinux) {
     $YtDlUrl = "https://github.com/yt-dlp/yt-dlp/releases/download/2021.12.27/yt-dlp"
 }
 
@@ -36,7 +41,15 @@ if (!(Test-Path $YtDl)) {
     }
 }
 
-$YtIndex = Get-ChildItem "list" -Recurse | Where-Object { $_.Name -eq "ytindex.txt" }
+$SourceFolder = if ($Source) {
+    if (Test-Path $Source) {
+        [System.IO.Directory]::CreateDirectory($Source)
+    }
+    $Source
+} else {
+    "list"
+}
+$YtIndex = Get-ChildItem $SourceFolder -Recurse | Where-Object { $_.Name -eq "ytindex.txt" }
 foreach ($item in $YtIndex) {
     Get-Content $item | ForEach-Object {
         # Start-Process $YtDl -Wait -PassThru -NoNewWindow -ArgumentList "-f","`"bestvideo[height<=720,ext=mp4]+bestaudio/best[height<=720,ext=m4a]`"","'$_'"
